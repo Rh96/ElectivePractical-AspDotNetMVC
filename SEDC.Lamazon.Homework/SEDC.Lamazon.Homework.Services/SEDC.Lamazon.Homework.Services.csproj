@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SEDC.Lamazon.Homework.DataAccess\SEDC.Lamazon.Homework.DataAccess.csproj" />
+    <ProjectReference Include="..\SEDC.Lamazon.Homework.Domain\SEDC.Lamazon.Homework.Domain.csproj" />
+    <ProjectReference Include="..\SEDC.Lamazon.Homework.WebModels\SEDC.Lamazon.Homework.WebModels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="7.0.1" />
+  </ItemGroup>
+
+</Project>
