@@ -41,23 +41,37 @@ namespace SEDC.Lamazon.Homework.Services.Services
 
             var result = _userManager.CreateAsync(user, password).Result;
 
+            bool isAdmin = false;
             if (result.Succeeded)
             {
                 var currentUser = _userManager.FindByNameAsync(user.UserName).Result;
-                _userManager.AddToRoleAsync(user, "user");
+                var roleResult = _userManager.AddToRoleAsync(currentUser, "user").Result;
 
-                Login(new LoginViewModel
+                if (roleResult.Succeeded)
                 {
-                    Username = registerModel.Username,
-                    Password = registerModel.Password
-                });
+                    Login(new LoginViewModel
+                    {
+                        Username = registerModel.Username,
+                        Password = registerModel.Password
+                    }, out isAdmin);
+                }
+                else
+                {
+                    throw new Exception("Adding user to a role failed!");
+                }
             }
         }
 
-        public void Login(LoginViewModel loginModel)
+        public void Login(LoginViewModel loginModel, out bool isAdmin)
         {
             var result = _signInManager.PasswordSignInAsync(loginModel.Username, loginModel.Password, false, false).Result;
+            User user = _userRepository.GetByUsername(loginModel.Username);
+            isAdmin = false;
 
+            if (result.Succeeded)
+            {
+                isAdmin = _userManager.IsInRoleAsync(user, "admin").Result;
+            }
             if (result.IsNotAllowed)
             {
                 throw new Exception("Username or Password is not correct!");

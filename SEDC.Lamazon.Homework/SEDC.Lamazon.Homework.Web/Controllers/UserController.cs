@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NToastNotify;
 using SEDC.Lamazon.Homework.Services.Interfaces;
 using SEDC.Lamazon.Homework.WebModels.ViewModels;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +13,11 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
     public class UserController : Controller
     {
         protected readonly IUserService _userService;
-        public UserController(IUserService userService)
+        protected readonly IToastNotification _toastNotification;
+        public UserController(IUserService userService, IToastNotification toastNotification)
         {
             _userService = userService;
+            _toastNotification = toastNotification;
         }
         public IActionResult LogIn()
         {
@@ -28,22 +32,30 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    _userService.Login(model);
+                    bool isAdmin;
+                    Log.Debug($"Authenticating user with username: {model.Username}");
+                    _userService.Login(model, out isAdmin);
                     if (User.IsInRole("Admin"))
                     {
+                        _toastNotification.AddSuccessToastMessage($"Welcome {model.Username}. You are logged in as an admin!");
+
+                        Log.Debug($"User with username {model.Username} successfully logged in! Admin user");
                         return RedirectToAction("listallorders", "order");
                     }
                     else
                     {
+                        _toastNotification.AddSuccessToastMessage($"Welcome {model.Username}. You are logged in as an customer!");
+
+                        Log.Debug($"User with username {model.Username} successfully logged in! Customer user");
                         return RedirectToAction("products", "product");
                     }
                 }
-                return View(model);
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                Log.Error($"Message: {ex.Message}");
             }
+            return View(model);
         }
 
         public IActionResult Register()
@@ -56,10 +68,17 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
         [HttpPost]
         public IActionResult Register(RegisterViewModel model)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _userService.Register(model);
-                return RedirectToAction("products", "product");
+                if (ModelState.IsValid)
+                {
+                    _userService.Register(model);
+                    return RedirectToAction("products", "product");
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = ex.Message;
             }
             return View(model);
         }

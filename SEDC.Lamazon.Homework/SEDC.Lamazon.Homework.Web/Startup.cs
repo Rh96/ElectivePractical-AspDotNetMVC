@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NToastNotify;
 using SEDC.Lamazon.Homework.Services.Helpers;
 using SEDC.Lamazon.Homework.Services.Interfaces;
 using SEDC.Lamazon.Homework.Services.Services;
@@ -54,6 +55,13 @@ namespace SEDC.Lamazon.Homework.Web
                     options.SlidingExpiration = true;
                 });
 
+            services.AddMvc().AddNToastNotifyToastr(new ToastrOptions()
+            {
+                ProgressBar = true,
+                PositionClass = ToastPositions.TopCenter,
+                CloseButton = true
+            });
+
 
             services.AddAutoMapper();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
@@ -78,6 +86,8 @@ namespace SEDC.Lamazon.Homework.Web
 
             //Don't avoid the following line if you want your app to use authentication
             app.UseAuthentication();
+
+            app.UseNToastNotify();
 
             app.UseMvc(routes =>
             {

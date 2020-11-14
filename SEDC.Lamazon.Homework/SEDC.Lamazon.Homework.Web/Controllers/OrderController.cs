@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SEDC.Lamazon.Homework.Services.Interfaces;
 using SEDC.Lamazon.Homework.Web.Models;
 using SEDC.Lamazon.Homework.WebModels.Enums;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace SEDC.Lamazon.Homework.Web.Controllers
 {
+    [Authorize]
     public class OrderController : Controller
     {
         protected readonly IOrderService _orderService;
@@ -22,26 +24,26 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
             _productService = productService;
             _userService = userService;
         }
-        
+        [Authorize(Roles = "user")]
         public IActionResult ListOrders()
         {
-            string userId = "3";
+            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
             List<OrderViewModel> userOrders = _orderService.GetAllOrders()
-                                                .Where(x => x.User.Id == userId)
+                                                .Where(x => x.User.Id == user.Id)
                                                 .ToList();
             return View(userOrders);
         }
-
+        [Authorize(Roles = "admin")]
         public IActionResult ListAllOrders()
         {
             List<OrderViewModel> orders = _orderService.GetAllOrders().ToList();
             return View(orders);
         }
-
+        [Authorize(Roles = "user")]
         public IActionResult OrderDetails(int orderId)
         {
-            string userId = "3";
-            OrderViewModel order = _orderService.GetOrderById(orderId, userId);
+            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+            OrderViewModel order = _orderService.GetOrderById(orderId, user.Id);
 
             if (order.Id > 0)
             {
@@ -52,34 +54,41 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
                 return View("Error", new ErrorViewModel());
             }
         }
-
+        [Authorize(Roles = "user")]
         public IActionResult Order()
         {
-            string userId = "3";
-            OrderViewModel order = _orderService.GetCurrentOrder(userId);
+            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+            OrderViewModel order = _orderService.GetCurrentOrder(user.Id);
             return View(order);
         }
-
+        [Authorize(Roles = "admin")]
         public IActionResult ApproveOrder(int orderId)
         {
             OrderViewModel order = _orderService.GetOrderById(orderId);
             _orderService.ChangeStatus(order.Id, order.User.Id, StatusTypeViewModel.Confirmed);
             return RedirectToAction("listallorders");
         }
-
+        [Authorize(Roles = "admin")]
         public IActionResult DeclineOrder(int orderId)
         {
             OrderViewModel order = _orderService.GetOrderById(orderId);
             _orderService.ChangeStatus(order.Id, order.User.Id, StatusTypeViewModel.Declined);
             return RedirectToAction("listallorders");
         }
-
+        [Authorize(Roles = "user")]
+        public IActionResult ChangeStatus(int orderId, int statusId)
+        {
+            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+            _orderService.ChangeStatus(orderId, user.Id, (StatusTypeViewModel)statusId);
+            return RedirectToAction("ListOrders");
+        }
+        [Authorize(Roles = "user")]
         public int AddProduct(int productId)
         {
-            string userId = "3";
-            OrderViewModel order = _orderService.GetCurrentOrder(userId);
+            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+            OrderViewModel order = _orderService.GetCurrentOrder(user.Id);
 
-            int result = _orderService.AddProduct(order.Id, productId, userId);
+            int result = _orderService.AddProduct(order.Id, productId, user.Id);
 
             if (result >= 0)
             {

@@ -7,9 +7,9 @@ namespace SEDC.Lamazon.Homework.WebModels.ViewModels
 {
     public class LoginViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Please insert username!")]
         public string Username { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Please insert password!")]
         public string Password { get; set; }
     }
 }

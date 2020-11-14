@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SEDC.Lamazon.Homework.Services.Interfaces;
 using SEDC.Lamazon.Homework.WebModels.ViewModels;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,9 +18,18 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
         {
             _productService = productService;
         }
+        [Authorize(Roles = "user")]
         public IActionResult Products()
         {
+            Log.Information("Fetching all products started");
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+
             List<ProductViewModel> products = _productService.GetAllProducts().ToList();
+            
+            stopwatch.Stop();
+            Log.Information($"Time for fetching all products: {stopwatch.ElapsedMilliseconds}ms");
             return View(products);
         }
     }
