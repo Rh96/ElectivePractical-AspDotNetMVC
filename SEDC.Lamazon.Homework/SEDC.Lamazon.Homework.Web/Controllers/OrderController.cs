@@ -4,6 +4,7 @@ using SEDC.Lamazon.Homework.Services.Interfaces;
 using SEDC.Lamazon.Homework.Web.Models;
 using SEDC.Lamazon.Homework.WebModels.Enums;
 using SEDC.Lamazon.Homework.WebModels.ViewModels;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,78 +28,143 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
         [Authorize(Roles = "user")]
         public IActionResult ListOrders()
         {
-            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
-            List<OrderViewModel> userOrders = _orderService.GetAllOrders()
-                                                .Where(x => x.User.Id == user.Id)
-                                                .ToList();
-            return View(userOrders);
+            try
+            {
+                UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+                List<OrderViewModel> userOrders = _orderService.GetAllOrders()
+                                                    .Where(x => x.User.Id == user.Id)
+                                                    .ToList();
+                return View(userOrders);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
+            }
+            return PartialView("ErrorView");
         }
         [Authorize(Roles = "admin")]
         public IActionResult ListAllOrders()
         {
-            List<OrderViewModel> orders = _orderService.GetAllOrders().ToList();
-            return View(orders);
+            try
+            {
+                List<OrderViewModel> orders = _orderService.GetAllOrders().ToList();
+                return View(orders);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
+            }
+            return PartialView("ErrorView");
         }
         [Authorize(Roles = "user")]
         public IActionResult OrderDetails(int orderId)
         {
-            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
-            OrderViewModel order = _orderService.GetOrderById(orderId, user.Id);
+            try
+            {
+                UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+                OrderViewModel order = _orderService.GetOrderById(orderId, user.Id);
 
-            if (order.Id > 0)
-            {
-                return View("order", order);
+                if (order.Id > 0)
+                {
+                    return View("order", order);
+                }
+                else
+                {
+                    return View("Error", new ErrorViewModel());
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return View("Error", new ErrorViewModel());
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
             }
+            return PartialView("ErrorView");
         }
         [Authorize(Roles = "user")]
         public IActionResult Order()
         {
-            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
-            OrderViewModel order = _orderService.GetCurrentOrder(user.Id);
-            return View(order);
+            try
+            {
+                UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+                OrderViewModel order = _orderService.GetCurrentOrder(user.Id);
+                return View(order);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
+            }
+            return PartialView("ErrorView");
         }
         [Authorize(Roles = "admin")]
         public IActionResult ApproveOrder(int orderId)
         {
-            OrderViewModel order = _orderService.GetOrderById(orderId);
-            _orderService.ChangeStatus(order.Id, order.User.Id, StatusTypeViewModel.Confirmed);
-            return RedirectToAction("listallorders");
+            try
+            {
+                OrderViewModel order = _orderService.GetOrderById(orderId);
+                _orderService.ChangeStatus(order.Id, order.User.Id, StatusTypeViewModel.Confirmed);
+                return RedirectToAction("listallorders");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
+            }
+            return PartialView("ErrorView");
         }
         [Authorize(Roles = "admin")]
         public IActionResult DeclineOrder(int orderId)
         {
-            OrderViewModel order = _orderService.GetOrderById(orderId);
-            _orderService.ChangeStatus(order.Id, order.User.Id, StatusTypeViewModel.Declined);
-            return RedirectToAction("listallorders");
+            try
+            {
+                OrderViewModel order = _orderService.GetOrderById(orderId);
+                _orderService.ChangeStatus(order.Id, order.User.Id, StatusTypeViewModel.Declined);
+                return RedirectToAction("listallorders");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
+            }
+            return PartialView("ErrorView");
         }
         [Authorize(Roles = "user")]
         public IActionResult ChangeStatus(int orderId, int statusId)
         {
-            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
-            _orderService.ChangeStatus(orderId, user.Id, (StatusTypeViewModel)statusId);
-            return RedirectToAction("ListOrders");
+            try
+            {
+                UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+                _orderService.ChangeStatus(orderId, user.Id, (StatusTypeViewModel)statusId);
+                return RedirectToAction("ListOrders");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
+            }
+            return PartialView("ErrorView");
         }
         [Authorize(Roles = "user")]
         public int AddProduct(int productId)
         {
-            UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
-            OrderViewModel order = _orderService.GetCurrentOrder(user.Id);
-
-            int result = _orderService.AddProduct(order.Id, productId, user.Id);
-
-            if (result >= 0)
+            try
             {
-                return result;
+                UserViewModel user = _userService.GetCurrentUser(User.Identity.Name);
+                OrderViewModel order = _orderService.GetCurrentOrder(user.Id);
+
+                int result = _orderService.AddProduct(order.Id, productId, user.Id);
+
+                if (result >= 0)
+                {
+                    Log.Debug($"Product was added successfully. Result: {result}");
+                    return result;
+                }
+                else
+                {
+                    Log.Debug($"Product was not added successfully. Result: {result}");
+                    return result;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                string message = "Something bad happened! Please contact support!";
-                return result;
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
             }
+            return -1;
         }
     }
 }

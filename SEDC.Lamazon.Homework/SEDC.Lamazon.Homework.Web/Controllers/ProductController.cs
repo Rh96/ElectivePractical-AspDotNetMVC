@@ -25,9 +25,12 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-
             List<ProductViewModel> products = _productService.GetAllProducts().ToList();
-            
+            //if (products.Count > 0)
+            //{
+            //    return View("ErrorView");
+            //}
+
             stopwatch.Stop();
             Log.Information($"Time for fetching all products: {stopwatch.ElapsedMilliseconds}ms");
             return View(products);

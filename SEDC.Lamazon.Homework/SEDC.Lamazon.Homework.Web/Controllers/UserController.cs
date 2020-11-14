@@ -35,17 +35,15 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
                     bool isAdmin;
                     Log.Debug($"Authenticating user with username: {model.Username}");
                     _userService.Login(model, out isAdmin);
-                    if (User.IsInRole("Admin"))
+                    if (isAdmin)
                     {
                         _toastNotification.AddSuccessToastMessage($"Welcome {model.Username}. You are logged in as an admin!");
-
                         Log.Debug($"User with username {model.Username} successfully logged in! Admin user");
                         return RedirectToAction("listallorders", "order");
                     }
                     else
                     {
-                        _toastNotification.AddSuccessToastMessage($"Welcome {model.Username}. You are logged in as an customer!");
-
+                        _toastNotification.AddSuccessToastMessage($"Welcome {model.Username}. You are logged in as a customer!");
                         Log.Debug($"User with username {model.Username} successfully logged in! Customer user");
                         return RedirectToAction("products", "product");
                     }
@@ -78,7 +76,7 @@ namespace SEDC.Lamazon.Homework.Web.Controllers
             }
             catch (Exception ex)
             {
-                string message = ex.Message;
+                Log.Error($"Message: {ex.Message} | Exception: {ex.InnerException}");
             }
             return View(model);
         }

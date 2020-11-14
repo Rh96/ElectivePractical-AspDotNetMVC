@@ -41,7 +41,14 @@
         fetch("/Order/AddProduct?productId=" + targetId, {
             method: "post"
         })
-            .then(res => alert("Successfuly added!"))
+            .then(res => {
+                if (res >= 0) {
+                    alert("Successfully added!");
+                }
+                else {
+                    alert("Something went wrong! Try again later!");
+                }
+            })
             .catch(error => alert(error));
     }
 </script>
